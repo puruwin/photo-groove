@@ -4,6 +4,7 @@ import Html exposing (..)                                       -- Importa otros
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Browser
+import Array exposing (Array)
 
 urlPrefix : String
 urlPrefix =
@@ -32,7 +33,15 @@ viewThumbnail selectedUrl thumb =
         ]
         []
 
-initialModel : { photos : List { url : String }, selectedUrl : String }
+type alias Photo =
+    { url : String }
+
+type alias Model =
+    { photos : List Photo 
+    , selectedUrl : String
+    }
+
+initialModel : Model
 initialModel =
     { photos =
         [ { url = "1.jpeg" }
@@ -41,6 +50,10 @@ initialModel =
     ]
     , selectedUrl = "1.jpeg"
     }
+
+photoArray : Array Photo
+photoArray = 
+    Array.fromList initialModel.photos
 
 update msg model =
     if msg.description == "ClickedPhoto" then
