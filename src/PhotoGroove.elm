@@ -1,23 +1,39 @@
 module PhotoGroove exposing (main)       -- Declara un nuevo modulo
 
 import Html exposing (..)                -- Importa otros modulos
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (class, id, src, title, classList, type_, name)
 import Html.Events exposing (onClick)
 import Browser
 import Array exposing (Array)
 import Http
+import Json.Decode exposing (Decoder, int, list, string, succeed)
+import Json.Decode.Pipeline exposing (optional, required)
 import Random
 
 urlPrefix : String
 urlPrefix =
     "http://elm-in-action.com/"
 
+initialCmd : Cmd Msg
+initialCmd =
+    Http.get
+        { url = "http://elm-in-action.com/photos/list.json"
+        , expect = Http.expectJson GotPhotos (list photoDecoder)
+        }
+
+photoDecoder : Decoder Photo
+photoDecoder =
+    succeed Photo
+        |> required "url" string
+        |> required "size" int
+        |> optional "title" string "(untitled)"
+
 type Msg 
     = ClickedPhoto String
     | GotRandomPhoto Photo
     | ClickedSize ThumbnailSize
     | ClickedSupriseMe
-    | GotPhotos (Result Http.Error String)
+    | GotPhotos (Result Http.Error (List Photo))
 
 view : Model -> Html Msg
 view model =
@@ -55,6 +71,7 @@ viewThumbnail : String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumb =
     img
         [ src (urlPrefix ++ thumb.url)
+        , title (thumb.title ++ " [" ++ String.fromInt thumb.size ++ " KB]")
         , classList [ ( "selected", selectedUrl == thumb.url) ]
         , onClick (ClickedPhoto thumb.url)
         ]
@@ -83,7 +100,10 @@ type ThumbnailSize
     | Large
 
 type alias Photo =
-    { url : String }
+    { url : String
+    , size : Int
+    , title : String
+    }
 
 type Status
     = Loading
@@ -124,21 +144,14 @@ update msg model =
                     ( model, Cmd.none )
                 Errored errorMessage ->
                     ( model, Cmd.none )
-        GotPhotos result ->
-            case result of
-                    Ok responseStr ->
-                        case String.split "," responseStr of
-                            (firstUrl :: _) as urls ->
-
-                                let
-                                    photos =
-                                        List.map Photo urls
-                                in
-                                    ( { model | status = Loaded photos firstUrl }, Cmd.none )
-                            [] ->
-                                ( { model | status = Errored "0 photos found" }, Cmd.none )
-                    Err httpError ->
-                        ( { model | status = Errored "Server error!" }, Cmd.none )
+        GotPhotos (Ok photos) ->
+            case photos of
+                first :: rest ->
+                    ( { model | status = Loaded photos first.url }, Cmd.none )
+                [] ->
+                    ( { model | status = Errored "0 photos found" }, Cmd.none )
+        GotPhotos (Err _) ->
+            ( model, Cmd.none )
 
 selectUrl : String -> Status -> Status
 selectUrl url status =
@@ -147,14 +160,14 @@ selectUrl url status =
             Loaded photos url
         Loading ->
             status
-        Errored errorMessage ->
+        Errored _ ->
             status
 
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \flags -> ( initialModel, Cmd.none )
+        { init = \_ -> ( initialModel, initialCmd )
         , view = view
         , update = update
-        , subscriptions = \model -> Sub.none
+        , subscriptions = \_ -> Sub.none
         }
