@@ -151,7 +151,7 @@ selectUrl url status =
             Loaded photos url
         Loading ->
             status
-        Errored errorMessage ->
+        Errored _ ->
             status
 
 main : Program () Model Msg
