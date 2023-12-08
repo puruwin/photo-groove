@@ -1,13 +1,14 @@
 module PhotoGroove exposing (main)       -- Declara un nuevo modulo
 
 import Html exposing (..)                -- Importa otros modulos
-import Html.Attributes exposing (class, id, src, title, classList, type_, name)
+import Html.Attributes as Attr exposing (class, id, src, title, classList, type_, name, max)
 import Html.Events exposing (onClick)
 import Browser
 import Array exposing (Array)
 import Http
 import Json.Decode exposing (Decoder, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as Encode
 import Random
 
 urlPrefix : String
@@ -46,12 +47,29 @@ view model =
             Errored errorMessage ->
                 [ text ("Error: " ++ errorMessage) ]
 
+viewFilter : String -> Int -> Html Msg
+viewFilter name magnitude =
+    div [ class "filter-slider" ]
+        [ label [] [ text name ]
+        , rangeSlider
+            [ Attr.max "11"
+            , Attr.property "val" (Encode.int magnitude)
+            ]
+            []
+        , label [] [ text (String.fromInt magnitude) ]
+        ]
+
 viewLoaded : List Photo -> String -> ThumbnailSize -> List (Html Msg)
 viewLoaded photos selectedUrl chosenSize =
     [ h1 [] [ text "Photo Groove" ]
         , button
             [ onClick ClickedSupriseMe ]
             [ text "Surprise Me!" ]
+        , div [ class "filters" ]
+            [ viewFilter "Hue" 0
+            , viewFilter "Ripple" 0
+            , viewFilter "Noise" 0
+            ]
         , h3 [] [ text "Thumbnail Size:" ]
         , div [ id "choose-size" ]
             (List.map viewSizeChooser [ Small, Medium, Large ])
@@ -171,3 +189,7 @@ main =
         , update = update
         , subscriptions = \_ -> Sub.none
         }
+
+rangeSlider : List (Attribute msg) -> List (Html msg) -> Html msg
+rangeSlider attributes children =
+    node "range-slider" attributes children
