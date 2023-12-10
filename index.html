@@ -36,12 +36,18 @@
 
   <body>
     <div id="app"></div>
+    <script src="http://elm-in-action.com/pasta.js"></script>
     <!--  La aplicación se renderiza en este div  -->
 
     <script src="app.js"></script>
     <!--  PhotoGroove.elm se compila a app.js  -->
+
     <script>
-      Elm.PhotoGroove.init({ node: document.getElementById("app") }); // El objeto Elm viene de app.js
+      const app = Elm.PhotoGroove.init({node: document.getElementById("app")});
+
+      app.ports.setFilters.subscribe((options) => {
+        Pasta.apply(document.getElementById("main-canvas"), options);
+      });
     </script>
   </body>
 </html>
