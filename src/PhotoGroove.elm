@@ -1,4 +1,5 @@
-port module PhotoGroove exposing (main, photoDecoder)       -- Declara un nuevo modulo
+port module PhotoGroove exposing 
+    (Model, Msg(..), Photo, initialModel, main, photoDecoder, update)       -- Declara un nuevo modulo
 
 import Html exposing (..)                -- Importa otros modulos
 import Html.Attributes as Attr exposing (class, id, src, title, classList, type_, name, max)
