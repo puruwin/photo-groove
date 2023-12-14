@@ -78,7 +78,7 @@ clickThumbnail =
         \urlsBefore urlToSelect urlsAfter ->
             let
                 url =
-                    urlToSelect ++ ".jpeg"
+                    urlToSelect ++ ".jpeg"  
                 
                 photos =
                     (urlsBefore ++ url :: urlsAfter)
