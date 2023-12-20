@@ -1,6 +1,6 @@
 port module PhotoGallery exposing 
   (Model, Msg(..), Photo, Status(..)
-    , init,  initialModel, main, photoDecoder, update, urlPrefix, view, photoFromUrl)       -- Declara un nuevo modulo
+    , init,  initialModel, main, subscriptions, photoDecoder, update, urlPrefix, view, photoFromUrl)       -- Declara un nuevo modulo
 
 import Html exposing (..)                -- Importa otros modulos
 import Html.Attributes as Attr exposing (class, id, src, title, classList, type_, name, max)
