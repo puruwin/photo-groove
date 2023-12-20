@@ -42,7 +42,9 @@
     
     <script src="/app.js"></script>
     <script>
-      const app = Elm.Main.init({node: document.getElementById("app")});
+      const app = Elm.Main.init({
+        flags: Pasta.version,
+        node: document.getElementById("app")});
     </script>
 
     <!--
