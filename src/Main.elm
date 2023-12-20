@@ -8,14 +8,21 @@ import Html exposing (Html, a, footer, h1, li, nav, text, ul)
 import Html.Lazy exposing (lazy)
 import Html.Attributes exposing (classList, href)
 
+import PhotoFolders as Folders
+import PhotoGallery as Gallery
+
 type alias Model =
   { page : Page, key : Nav.Key }
 
 type Page
-  = SelectedPhoto String
-  | Gallery
-  | Folders
+  = GalleryPage Gallery.Model
+  | FoldersPage Folders.Model
   | NotFound
+
+type Route
+  = Gallery
+  | Folders
+  | SelectedPhoto String
 
 view : Model -> Document Msg
 view model =
@@ -42,24 +49,22 @@ viewHeader page =
         [ navLink Folders { url = "/", caption = "Folders" }
         , navLink Gallery { url = "/gallery", caption = "Gallery" }
         ]
-    navLink : Page -> { url : String, caption : String } -> Html msg
+    navLink : Route -> { url : String, caption : String } -> Html msg
     navLink targetPage { url, caption } =
       li [ classList [ ( "active", isActive { link = targetPage, page = page } ) ] ]
           [ a [ href url ] [ text caption ] ]
   in
   nav [] [ logo, links ]
 
-isActive : { link : Page, page : Page } -> Bool
+isActive : { link : Route, page : Page } -> Bool
 isActive { link, page } =
   case ( link,            page            ) of
        ---------------------------------------------
-       ( Gallery,         Gallery         ) -> True
+       ( Gallery,         GalleryPage _   ) -> True
        ( Gallery,         _               ) -> False
-       ( Folders,         Folders         ) -> True
-       ( Folders,         SelectedPhoto _ ) -> True
+       ( Folders,         FoldersPage _   ) -> True
        ( Folders,         _               ) -> False
        ( SelectedPhoto _, _               ) -> False
-       ( NotFound,        _               ) -> False
 
 viewFooter : Html msg
 viewFooter =
@@ -91,8 +96,18 @@ init flags url key =
 
 urlToPage : Url -> Page
 urlToPage url =
-  Parser.parse parser url
-    |> Maybe.withDefault NotFound
+  case Parser.parse parser url of
+    Just Gallery ->
+      GalleryPage (Tuple.first (Gallery.init 1))
+    
+    Just Folders ->
+      FoldersPage (Tuple.first (Folders.init Nothing))
+    
+    Just SelectedPhoto filename ->
+      FoldersPage (Tuple.first (Folders.init (Just filename)))
+    
+    Nothing ->
+      NotFound
 
 parser : Parser (Page -> a) a
 parser =
