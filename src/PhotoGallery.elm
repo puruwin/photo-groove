@@ -1,6 +1,6 @@
 port module PhotoGallery exposing 
   (Model, Msg(..), Photo, Status(..)
-    , init,  initialModel, main, subscriptions, photoDecoder, update, urlPrefix, view, photoFromUrl)       -- Declara un nuevo modulo
+    , init, initialModel, main, subscriptions, photoDecoder, update, urlPrefix, view, photoFromUrl)       -- Declara un nuevo modulo
 
 import Html exposing (..)                -- Importa otros modulos
 import Html.Attributes as Attr exposing (class, id, src, title, classList, type_, name, max)
@@ -21,14 +21,14 @@ initialCmd : Cmd Msg
 initialCmd =
   Http.get
     { url = "http://elm-in-action.com/photos/list.json"
-    , expect = Http.expectJson GotPhotos (list photoDecoder)
+    , expect = Http.expectJson GotPhotos (Json.Decode.list photoDecoder)
     }
 
 photoDecoder : Decoder Photo
 photoDecoder =
   succeed Photo
-    |> required "url" string
-    |> required "size" int
+    |> Json.Decode.Pipeline.required "url" string
+    |> Json.Decode.Pipeline.required "size" int
     |> optional "title" string "(untitled)"
 
 type Msg 
@@ -68,8 +68,7 @@ viewFilter toMsg name magnitude =
 
 viewLoaded : List Photo -> String -> Model -> List (Html Msg)
 viewLoaded photos selectedUrl model =
-  [ h1 [] [ text "Photo Groove" ]
-    , button
+  [ button
       [ onClick ClickedSupriseMe ]
         [ text "Surprise Me!" ]
     , div [ class "activity" ] [ text model.activity]
